@@ -350,3 +350,62 @@ export async function getLiveMetrics() {
   // Mock live metrics as backend does not support yet
   return mockLiveResponse
 }
+
+// ─── GRC Endpoints ─────────────────────────────────────────────────────────────
+
+export async function getRisks(jobId) {
+  if (USE_MOCK) return []
+  const res = await fetch(`${API_BASE}/api/v1/grc/${jobId}/risks`)
+  if (!res.ok) throw new Error('Failed to fetch risks')
+  return res.json()
+}
+
+export async function updateRisk(jobId, riskId, patch) {
+  const res = await fetch(`${API_BASE}/api/v1/grc/${jobId}/risks/${riskId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch)
+  })
+  if (!res.ok) throw new Error('Failed to update risk')
+  return res.json()
+}
+
+export async function getCompliance(jobId) {
+  if (USE_MOCK) return []
+  const res = await fetch(`${API_BASE}/api/v1/grc/${jobId}/compliance`)
+  if (!res.ok) throw new Error('Failed to fetch compliance')
+  return res.json()
+}
+
+export async function updateControl(jobId, controlId, patch) {
+  const res = await fetch(`${API_BASE}/api/v1/grc/${jobId}/compliance/${controlId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch)
+  })
+  if (!res.ok) throw new Error('Failed to update control')
+  return res.json()
+}
+
+export async function getEvidence(jobId, findingId = '') {
+  if (USE_MOCK) return []
+  const url = `${API_BASE}/api/v1/grc/${jobId}/evidence${findingId ? `?finding_id=${encodeURIComponent(findingId)}` : ''}`
+  const res = await fetch(url)
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function uploadEvidence(jobId, file, findingId = '', notes = '') {
+  const formData = new FormData()
+  formData.append('file', file)
+  if (findingId) formData.append('finding_id', findingId)
+  if (notes) formData.append('notes', notes)
+
+  const res = await fetch(`${API_BASE}/api/v1/grc/${jobId}/evidence`, {
+    method: 'POST',
+    body: formData
+  })
+  if (!res.ok) throw new Error('Failed to upload evidence')
+  return res.json()
+}
+

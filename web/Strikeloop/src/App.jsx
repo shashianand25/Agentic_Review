@@ -11,6 +11,8 @@ import PlanPage from './pages/PlanPage.jsx'
 import MonitorPage from './pages/MonitorPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
 import ReportPage from './pages/ReportPage.jsx'
+import RiskRegisterPage from './pages/RiskRegisterPage.jsx'
+import CompliancePage from './pages/CompliancePage.jsx'
 
 // Legacy redirects — old /architecture/:jobId links → new /overview/:jobId
 function LegacyArchRedirect() {
@@ -42,6 +44,8 @@ export default function App() {
           <Route path="/services/:jobId" element={<ServicesPage />} />
           <Route path="/diagram/:jobId"  element={<DiagramPage />} />
           <Route path="/security/:jobId" element={<SecurityPage />} />
+          <Route path="/risks/:jobId"    element={<RiskRegisterPage />} />
+          <Route path="/compliance/:jobId" element={<CompliancePage />} />
           <Route path="/cost/:jobId"     element={<CostPage />} />
           <Route path="/plan/:jobId"     element={<PlanPage />} />
           <Route path="/monitor"         element={<MonitorPage />} />

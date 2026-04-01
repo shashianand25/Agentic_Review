@@ -266,7 +266,7 @@ export default function ConnectPage() {
           }}>
             <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11, fontWeight: 500, color: '#F5F5F5' }}>IA</span>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 500, color: '#F5F5F5' }}>Infra.ai</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: '#F5F5F5' }}>Strikeloop</span>
         </div>
 
         {/* Right: docs + beta */}

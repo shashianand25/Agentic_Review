@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes_analyze import router as analyze_router
 from app.api.routes_health import router as health_router
+from app.api.routes_grc import router as grc_router
 from app.core.config import get_settings
 
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +44,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router, prefix="/api/v1")
     app.include_router(analyze_router, prefix="/api/v1")
+    app.include_router(grc_router)
     return app
 
 

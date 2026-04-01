@@ -76,3 +76,68 @@ class AnalysisStore:
 
 
 store = AnalysisStore()
+
+
+# ─── GRC store (risk register + compliance overrides + evidence) ───────────────
+
+class GRCStore:
+    """In-memory GRC data keyed by analysis_id."""
+
+    def __init__(self) -> None:
+        self._risks: dict[str, dict[str, dict]] = {}       # job_id -> {risk_id -> risk}
+        self._compliance: dict[str, dict[str, dict]] = {}  # job_id -> {control_id -> control}
+        self._evidence: dict[str, list[dict]] = {}         # job_id -> [evidence]
+        self._lock = threading.Lock()
+
+    # ── Risk Register ──────────────────────────────────────────────────────────
+
+    def set_risks(self, job_id: str, risks: list[dict]) -> None:
+        with self._lock:
+            self._risks[job_id] = {r["id"]: r for r in risks}
+
+    def get_risks(self, job_id: str) -> list[dict]:
+        with self._lock:
+            return list((self._risks.get(job_id) or {}).values())
+
+    def update_risk(self, job_id: str, risk_id: str, patch: dict) -> dict | None:
+        with self._lock:
+            bucket = self._risks.setdefault(job_id, {})
+            if risk_id not in bucket:
+                return None
+            bucket[risk_id].update(patch)
+            return bucket[risk_id]
+
+    # ── Compliance Controls ────────────────────────────────────────────────────
+
+    def set_controls(self, job_id: str, controls: list[dict]) -> None:
+        with self._lock:
+            self._compliance[job_id] = {c["id"]: c for c in controls}
+
+    def get_controls(self, job_id: str) -> list[dict]:
+        with self._lock:
+            return list((self._compliance.get(job_id) or {}).values())
+
+    def update_control(self, job_id: str, control_id: str, patch: dict) -> dict | None:
+        with self._lock:
+            bucket = self._compliance.setdefault(job_id, {})
+            if control_id not in bucket:
+                return None
+            bucket[control_id].update(patch)
+            return bucket[control_id]
+
+    # ── Evidence ───────────────────────────────────────────────────────────────
+
+    def add_evidence(self, job_id: str, evidence: dict) -> None:
+        with self._lock:
+            self._evidence.setdefault(job_id, []).append(evidence)
+
+    def get_evidence(self, job_id: str, finding_id: str | None = None) -> list[dict]:
+        with self._lock:
+            items = self._evidence.get(job_id) or []
+            if finding_id:
+                items = [e for e in items if e.get("finding_id") == finding_id]
+            return items
+
+
+grc_store = GRCStore()
+

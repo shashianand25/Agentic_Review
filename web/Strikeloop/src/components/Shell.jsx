@@ -15,6 +15,8 @@ import {
   GitBranch,
   Shield,
   DollarSign,
+  AlertTriangle,
+  ClipboardCheck,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 
@@ -135,6 +137,20 @@ export default function Shell({ children, statusBadge }) {
       match: '/security/',
     },
     {
+      icon: AlertTriangle,
+      label: 'Risk Register',
+      to: activeJobId ? `/risks/${activeJobId}` : '#',
+      disabled: !activeJobId,
+      match: '/risks/',
+    },
+    {
+      icon: ClipboardCheck,
+      label: 'Compliance',
+      to: activeJobId ? `/compliance/${activeJobId}` : '#',
+      disabled: !activeJobId,
+      match: '/compliance/',
+    },
+    {
       icon: DollarSign,
       label: 'Cost',
       to: activeJobId ? `/cost/${activeJobId}` : '#',
@@ -169,6 +185,8 @@ export default function Shell({ children, statusBadge }) {
     '/services/': 'Services Map',
     '/diagram/': 'Architecture Diagram',
     '/security/': 'Security',
+    '/risks/': 'Risk Register',
+    '/compliance/': 'Compliance Tracker',
     '/cost/': 'Cost Analysis',
     '/plan/': 'Infrastructure Plan',
     '/monitor': 'Live Monitoring',
@@ -210,7 +228,7 @@ export default function Shell({ children, statusBadge }) {
                 ${collapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}
               `}
             >
-              Infra.ai
+              Strikeloop
             </span>
           </div>
         </div>
