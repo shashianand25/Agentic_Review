@@ -48,6 +48,8 @@ async def analyze(
     github_token: Annotated[str | None, Form()] = None,
     run_live_audit: Annotated[bool, Form()] = False,
     prowler_check_ids: Annotated[str | None, Form()] = None,
+    aws_access_key_id: Annotated[str | None, Form()] = None,
+    aws_secret_access_key: Annotated[str | None, Form()] = None,
 ) -> AnalysisAccepted:
     files = files or []
     if not files and not (github_url and github_url.strip()):
@@ -77,6 +79,10 @@ async def analyze(
     meta["run_live_audit"] = run_live_audit
     if prowler_check_ids:
         meta["prowler_check_ids"] = prowler_check_ids
+    if aws_access_key_id:
+        meta["aws_access_key_id"] = aws_access_key_id
+    if aws_secret_access_key:
+        meta["aws_secret_access_key"] = aws_secret_access_key
 
     job = store.create_job(metadata=meta)
     analysis_id = job.analysis_id

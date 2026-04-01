@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -31,7 +32,10 @@ class ProwlerRawFinding:
     raw: dict[str, Any]
 
 
-def run_prowler(check_ids: list[str] | None = None) -> tuple[list[ProwlerRawFinding], str | None]:
+def run_prowler(
+    check_ids: list[str] | None = None,
+    aws_keys: dict[str, str] | None = None,
+) -> tuple[list[ProwlerRawFinding], str | None]:
     prowler_bin = shutil.which("prowler")
     if not prowler_bin:
         logger.warning("prowler not found on PATH")
@@ -48,8 +52,18 @@ def run_prowler(check_ids: list[str] | None = None) -> tuple[list[ProwlerRawFind
         "json",
     ]
 
+    # Pass user-supplied AWS credentials as env vars so Prowler picks them up
+    env = os.environ.copy()
+    if aws_keys:
+        if aws_keys.get("aws_access_key_id"):
+            env["AWS_ACCESS_KEY_ID"] = aws_keys["aws_access_key_id"]
+        if aws_keys.get("aws_secret_access_key"):
+            env["AWS_SECRET_ACCESS_KEY"] = aws_keys["aws_secret_access_key"]
+        if aws_keys.get("aws_region"):
+            env["AWS_DEFAULT_REGION"] = aws_keys["aws_region"]
+
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180, env=env)
     except FileNotFoundError:
         logger.warning("prowler binary disappeared after which() check")
         return [], "prowler executable not found"

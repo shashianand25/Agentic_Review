@@ -797,6 +797,13 @@ def _sync_run(
     else:
         check_ids = None
 
+    aws_keys: dict[str, str] | None = None
+    if metadata.get("aws_access_key_id") and metadata.get("aws_secret_access_key"):
+        aws_keys = {
+            "aws_access_key_id": str(metadata["aws_access_key_id"]),
+            "aws_secret_access_key": str(metadata["aws_secret_access_key"]),
+        }
+
     scan_root = work
     gh_err: str | None = None
     if github_url:
@@ -895,6 +902,7 @@ def _sync_run(
         generated_iac, vision_gen_err = generate_iac_from_vision(
             diagram_summary.components,
             diagram_summary.notes or "",
+            aws_keys=aws_keys,
         )
         if generated_iac:
             draft_path = scan_root / "vision_draft.tf"
@@ -918,7 +926,7 @@ def _sync_run(
     prowler_err: str | None = None
     if run_live_audit:
         _p("running_prowler_audit", 50)
-        prowler_raw, prowler_err = run_prowler(check_ids)
+        prowler_raw, prowler_err = run_prowler(check_ids, aws_keys=aws_keys)
 
     cost_lookup = _build_cost_lookup(cost_report)
     cost_report.total_monthly_before = cost_report.total_monthly_usd
@@ -942,6 +950,7 @@ def _sync_run(
         diagram_summary.notes,
         proposed_findings=proposed_context,
         actual_findings=actual_context,
+        aws_keys=aws_keys,
     )
     warnings.extend(w)
 
@@ -973,7 +982,7 @@ def _sync_run(
     _enrich_findings_with_cost(findings, cost_lookup)
 
     _p("generating_remediations", 80)
-    remediations = generate_remediations(findings, work, file_contents)
+    remediations = generate_remediations(findings, work, file_contents, aws_keys=aws_keys)
 
     _p("estimating_cost_delta", 90)
     after_cost = _estimate_post_remediation_cost(remediations, cost_report)

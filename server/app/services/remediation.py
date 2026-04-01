@@ -22,23 +22,27 @@ from app.models.schemas import CostReport, Finding, Remediation, RemediationVali
 logger = logging.getLogger(__name__)
 
 
-def _bedrock_client():
+def _bedrock_client(aws_keys: dict[str, str] | None = None):
     settings = get_settings()
     bearer = settings.aws_bearer_token_bedrock or settings.aws_bedrock_api
     if bearer:
         os.environ["AWS_BEARER_TOKEN_BEDROCK"] = bearer
     kwargs: dict[str, Any] = {"region_name": settings.aws_region}
-    if settings.aws_access_key_id and settings.aws_secret_access_key:
+    
+    if aws_keys and aws_keys.get("aws_access_key_id") and aws_keys.get("aws_secret_access_key"):
+        kwargs["aws_access_key_id"] = aws_keys["aws_access_key_id"]
+        kwargs["aws_secret_access_key"] = aws_keys["aws_secret_access_key"]
+    elif settings.aws_access_key_id and settings.aws_secret_access_key:
         kwargs["aws_access_key_id"] = settings.aws_access_key_id
         kwargs["aws_secret_access_key"] = settings.aws_secret_access_key
     return boto3.client("bedrock-runtime", **kwargs)
 
 
-def _invoke_llm(system: str, user: str) -> str:
+def _invoke_llm(system: str, user: str, aws_keys: dict[str, str] | None = None) -> str:
     """Call Bedrock with the configured model, adapting payload to model family."""
     settings = get_settings()
     mid = (settings.bedrock_model_id or "").lower()
-    client = _bedrock_client()
+    client = _bedrock_client(aws_keys)
 
     if "amazon.nova" in mid:
         body = {
@@ -86,6 +90,7 @@ def generate_remediations(
     work_dir: Path,
     file_contents: dict[str, str],
     max_items: int | None = None,
+    aws_keys: dict[str, str] | None = None,
 ) -> list[Remediation]:
     """Produce remediations per finding; map to best-matching file by evidence path."""
     settings = get_settings()
@@ -100,7 +105,7 @@ def generate_remediations(
         else:
             fp = "main.tf"
         original = file_contents.get(fp, "# (no matching file content)\n")
-        fixed, diff_u, notes = _fix_for_finding(f, fp, original)
+        fixed, diff_u, notes = _fix_for_finding(f, fp, original, aws_keys)
         fmt_ok, fmt_notes = _validate_terraform_fmt(fixed, fp)
         ckv_ok, ckv_notes = _validate_checkov(fixed, fp)
         all_notes = " | ".join(filter(None, [notes, fmt_notes, ckv_notes]))
@@ -122,7 +127,7 @@ def generate_remediations(
     return out
 
 
-def _fix_for_finding(finding: Finding, file_path: str, original: str) -> tuple[str, str, str | None]:
+def _fix_for_finding(finding: Finding, file_path: str, original: str, aws_keys: dict[str, str] | None = None) -> tuple[str, str, str | None]:
     system = """You are an expert Terraform engineer. Fix the infrastructure code to address the finding.
 Return ONLY the full remediated file content for this single file inside a ```hcl code fence.
 Do not add commentary outside the fence."""
@@ -139,7 +144,7 @@ Recommendation: {finding.recommendation}
 """
 
     try:
-        raw = _invoke_llm(system, user)
+        raw = _invoke_llm(system, user, aws_keys)
         fixed = _extract_code_block(raw)
         if len(fixed) < 10:
             fixed = original

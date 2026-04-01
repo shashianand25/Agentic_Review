@@ -1,0 +1,9 @@
+#!/Users/shashi/Downloads/Well_Archi_Agent_2-main/server/venv/bin/python3.11
+from checkov.main import Checkov
+import warnings
+import sys
+
+if __name__ == '__main__':
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=SyntaxWarning)
+        sys.exit(Checkov().run())

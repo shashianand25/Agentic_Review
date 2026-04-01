@@ -66,24 +66,28 @@ CHECKOV_PILLAR_MAP: dict[str, PillarKey] = {
 }
 
 
-def _bedrock_client():
+def _bedrock_client(aws_keys: dict[str, str] | None = None):
     settings = get_settings()
     bearer = settings.aws_bearer_token_bedrock or settings.aws_bedrock_api
     if bearer:
         # AWS Bedrock API key flow for SDKs uses AWS_BEARER_TOKEN_BEDROCK.
         os.environ["AWS_BEARER_TOKEN_BEDROCK"] = bearer
     kwargs: dict[str, Any] = {"region_name": settings.aws_region}
-    if settings.aws_access_key_id and settings.aws_secret_access_key:
+    
+    if aws_keys and aws_keys.get("aws_access_key_id") and aws_keys.get("aws_secret_access_key"):
+        kwargs["aws_access_key_id"] = aws_keys["aws_access_key_id"]
+        kwargs["aws_secret_access_key"] = aws_keys["aws_secret_access_key"]
+    elif settings.aws_access_key_id and settings.aws_secret_access_key:
         kwargs["aws_access_key_id"] = settings.aws_access_key_id
         kwargs["aws_secret_access_key"] = settings.aws_secret_access_key
     return boto3.client("bedrock-runtime", **kwargs)
 
 
-def _invoke_llm(system: str, user: str) -> str:
+def _invoke_llm(system: str, user: str, aws_keys: dict[str, str] | None = None) -> str:
     """Call Bedrock with the configured model, adapting payload to model family."""
     settings = get_settings()
     mid = (settings.bedrock_model_id or "").lower()
-    client = _bedrock_client()
+    client = _bedrock_client(aws_keys)
 
     if "amazon.nova" in mid:
         body = {
@@ -137,6 +141,7 @@ def synthesize_review(
     diagram_notes: str | None,
     proposed_findings: list[str] | None = None,
     actual_findings: list[str] | None = None,
+    aws_keys: dict[str, str] | None = None,
 ) -> tuple[PillarScores, PillarRadar, list[Finding], list[str]]:
     """
     Returns pillar scores, radar, LLM findings, and warnings (e.g. bedrock unavailable).
@@ -221,7 +226,7 @@ When drift is detected, include one or more findings under pillar "operational_e
     )
 
     try:
-        raw = _invoke_llm(system, user)
+        raw = _invoke_llm(system, user, aws_keys)
     except (ClientError, BotoCoreError, json.JSONDecodeError, KeyError) as e:
         logger.exception("Bedrock invoke failed: %s", e)
         warnings.append(f"bedrock_unavailable: {e!s}")
@@ -387,7 +392,7 @@ def _fallback_radar() -> PillarRadar:
 # Diagram-to-Terraform: generate draft IaC from vision-extracted components
 # ---------------------------------------------------------------------------
 
-def generate_iac_from_vision(components: list[str], notes: str) -> tuple[str, str | None]:
+def generate_iac_from_vision(components: list[str], notes: str, aws_keys: dict[str, str] | None = None) -> tuple[str, str | None]:
     """Generate a single-file Terraform config from architecture diagram analysis.
 
     Returns (terraform_source, error_or_none).
@@ -408,7 +413,7 @@ Additional context / data-flow notes:
 Generate the Terraform now."""
 
     try:
-        raw = _invoke_llm(system, user)
+        raw = _invoke_llm(system, user, aws_keys)
     except (ClientError, BotoCoreError, json.JSONDecodeError, KeyError) as e:
         logger.exception("IaC generation from vision failed: %s", e)
         return "", f"bedrock_iac_gen_failed: {e!s}"
