@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design tokens (matching template globals.css oklch values → hex) ─── */
+:root {
+  /* Background: oklch(0.09 0.005 260) */
+  --background: #0d0d13;
+  --color-background: #0d0d13;
+
+  /* Foreground: oklch(0.95 0 0) */
+  --foreground: #f2f2f2;
+  --color-foreground: #f2f2f2;
+
+  /* Card: oklch(0.12 0.005 260) */
+  --card: #141419;
+  --color-card: #141419;
+  --card-foreground: #f2f2f2;
+  --color-card-foreground: #f2f2f2;
+
+  /* Popover */
+  --popover: #141419;
+  --color-popover: #141419;
+  --popover-foreground: #f2f2f2;
+  --color-popover-foreground: #f2f2f2;
+
+  /* Primary: oklch(0.95 0 0) */
+  --primary: #f2f2f2;
+  --color-primary: #f2f2f2;
+  --primary-foreground: #0d0d13;
+  --color-primary-foreground: #0d0d13;
+
+  /* Secondary: oklch(0.18 0.005 260) */
+  --secondary: #1e1e27;
+  --color-secondary: #1e1e27;
+  --secondary-foreground: #f2f2f2;
+  --color-secondary-foreground: #f2f2f2;
+
+  /* Muted */
+  --muted: #1e1e27;
+  --color-muted: #1e1e27;
+  --muted-foreground: #888898;
+  --color-muted-foreground: #888898;
+
+  /* Accent: oklch(0.7 0.18 145) — green */
+  --accent: #4ade80;
+  --color-accent: #4ade80;
+  --accent-foreground: #0d0d13;
+  --color-accent-foreground: #0d0d13;
+
+  /* Destructive: oklch(0.65 0.2 25) — red */
+  --destructive: #ef4444;
+  --color-destructive: #ef4444;
+  --destructive-foreground: #f2f2f2;
+  --color-destructive-foreground: #f2f2f2;
+
+  /* Border: oklch(0.22 0.005 260) */
+  --border: #2a2a35;
+  --color-border: #2a2a35;
+
+  /* Input */
+  --input: #1e1e27;
+  --color-input: #1e1e27;
+
+  /* Ring */
+  --ring: #4ade80;
+  --color-ring: #4ade80;
+
+  /* Chart colors */
+  --chart-1: #60a5fa;
+  --chart-2: #4ade80;
+  --chart-3: #fbbf24;
+  --chart-4: #f87171;
+  --chart-5: #a78bfa;
+  --color-chart-1: #60a5fa;
+  --color-chart-2: #4ade80;
+  --color-chart-3: #fbbf24;
+  --color-chart-4: #f87171;
+  --color-chart-5: #a78bfa;
+
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* Sidebar: oklch(0.11 0.005 260) */
+  --sidebar: #111116;
+  --color-sidebar: #111116;
+  --sidebar-foreground: #f2f2f2;
+  --color-sidebar-foreground: #f2f2f2;
+  --sidebar-primary: #4ade80;
+  --color-sidebar-primary: #4ade80;
+  --sidebar-primary-foreground: #0d0d13;
+  --color-sidebar-primary-foreground: #0d0d13;
+  --sidebar-accent: #1e1e27;
+  --color-sidebar-accent: #1e1e27;
+  --sidebar-accent-foreground: #f2f2f2;
+  --color-sidebar-accent-foreground: #f2f2f2;
+  --sidebar-border: #2a2a35;
+  --color-sidebar-border: #2a2a35;
+
+  /* Semantic */
+  --success: #4ade80;
+  --color-success: #4ade80;
+  --warning: #fbbf24;
+  --color-warning: #fbbf24;
+}
+
+/* ─── Base layer ─────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply text-foreground;
+    background-color: var(--background);
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+  }
+}
+
+/* ─── animate-in utilities (matching template's tw-animate-css) ──────────── */
+@layer utilities {
+  .animate-in {
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation-name: fade-in;
+    animation-duration: 0.5s;
+    animation-timing-function: ease;
+  }
+
+  .slide-in-from-bottom-4 {
+    animation-name: slide-up;
+    animation-duration: 0.5s;
+    animation-timing-function: ease;
+  }
+
+  .slide-in-from-bottom-2 {
+    animation-name: slide-up-sm;
+    animation-duration: 0.3s;
+    animation-timing-function: ease;
+  }
+
+  .slide-in-from-left-2 {
+    animation-name: slide-left;
+    animation-duration: 0.3s;
+    animation-timing-function: ease;
+  }
+
+  .duration-300 {
+    animation-duration: 0.3s;
+  }
+
+  .duration-500 {
+    animation-duration: 0.5s;
+  }
+}
+
+/* ─── Global keyframes ───────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(1rem); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes slide-up-sm {
+  from { transform: translateY(0.5rem); opacity: 0; }
+  to   { transform: translateY(0);       opacity: 1; }
+}
+
+@keyframes slide-left {
+  from { transform: translateX(-0.5rem); opacity: 0; }
+  to   { transform: translateX(0);        opacity: 1; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Thin scrollbar ─────────────────────────────────────────────────────── */
+.thin-scroll::-webkit-scrollbar { width: 6px; }
+.thin-scroll::-webkit-scrollbar-track { background: transparent; }
+.thin-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.thin-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+/* ─── Stage dot pulse (Analysis page) ───────────────────────────────────── */
+.stage-dot-pulse {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* ─── Spin utility ───────────────────────────────────────────────────────── */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ─── Pulse for skeletons ────────────────────────────────────────────────── */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

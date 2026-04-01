@@ -1,0 +1,8 @@
+FRONTEND_SPEC.md
+server/.cursorrules
+server/docs
+server/.env
+debug-*.log
+docs/
+server/tests/
+demo
