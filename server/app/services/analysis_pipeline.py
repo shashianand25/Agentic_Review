@@ -850,23 +850,7 @@ def _sync_run(
     from app.core.config import get_settings
     settings = get_settings()
 
-    if settings.demo_fast_mode:
-        has_iac = any(
-            k.endswith((".tf", ".tfvars", ".yaml", ".yml", ".json"))
-            for k in file_contents
-        )
-        if has_iac:
-            logger.info("DEMO_FAST_MODE: returning hardcoded IaC review")
-            _p("demo_mode_active", 90)
-            return _demo_iac_fallback(files_meta, file_contents)
-        if diagram_paths:
-            logger.info("DEMO_FAST_MODE: returning hardcoded diagram review")
-            _p("demo_mode_active", 90)
-            return _demo_diagram_fallback(
-                files_meta,
-                DiagramSummary(extracted=True, components=["CloudFront", "ALB", "EC2", "RDS", "ElastiCache", "NAT Gateway", "S3"], notes="Demo cached"),
-                "DEMO_FAST_MODE: Gemini call skipped",
-            )
+    # Removed DEMO_FAST_MODE short-circuit to ensure real analysis runs
 
     diagram_summary = DiagramSummary(extracted=False, components=[], notes=None)
     gemini_err: str | None = None
@@ -1004,6 +988,12 @@ def _sync_run(
         errors.append(ErrorDetail(code="VISION_IAC_GEN_WARNING", message=vision_gen_err, detail=None))
     for wmsg in warnings:
         errors.append(ErrorDetail(code="BEDROCK_WARNING", message=wmsg, detail=None))
+
+    if not generated_iac and file_contents:
+        # Fallback for diagram generator: concatenate all repo HCL if we didn't generate it
+        valid_hcl = [content for path, content in file_contents.items() if path.endswith(".tf")]
+        if valid_hcl:
+            generated_iac = "\n\n".join(valid_hcl)
 
     return ArtifactResponse(
         analysis_id="",
